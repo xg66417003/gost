@@ -1,0 +1,41 @@
+隧道
+
+go语言环境：wget -N --no-check-certificate https://cloud.golby.cc/Other/gost/go1.13.8.linux-amd64.tar.gz && tar -zxvf go1.13.8.linux-amd64.tar.gz
+移动go到本地：mv go/ /usr/local/
+添加环境变量：vi /etc/profile
+echo export PATH=$PATH:/usr/local/go/bin>>/etc/profile
+变量：	export PATH=$PATH:/usr/local/go/bin
+环境变量生效：source /etc/profile && go version
+检查go版本：go version
+
+创建gost文件夹：mkdir gost && cd gost
+打开gost文件夹：cd gost
+手动下载二进制文件
+wget http://vpn-1.xyz/gost-linux-386-2.11.0.gz
+gzip -d gost-linux-386-2.11.0.gz && chmod +x gost-linux-386-2.11.1 && mv gost-linux-386-2.11.1 gost
+
+
+
+nohup ./gost -L udp://:48001 -L tcp://:48001 -F relay+mtls://141.164.42.252:12345 >> /dev/null 2>&1 &
+
+监听本机 1053 端口的 TCP、UDP 连接，转发到落地机器的 12345 端口。
+
+nohup ./gost -L relay+mtls://:12345/127.0.0.1:80  >> /dev/null 2>&1 &
+监听本机的 12345 端口，接收转发过来的连接，再转给本地的 443 端口。
+
+crontab -l > docker.cron
+echo '0 18 * * * docker restart $(docker ps -q)' >> docker.cron
+crontab docker.cron
+
+
+
+下面的 国外机器执行
+docker run -d --name gost --network=host --restart=always ginuerzh/gost -L="mtls://:443/:单端口多用户承载端口"
+
+docker run -d --name gost --network=host --restart=always ginuerzh/gost -L="relay+ws://:5/:857"
+
+
+国内中转机器执行
+docker run -d --name gost1 --network=host --restart=always ginuerzh/gost -L="udp://:国内机器转发端口" -L="tcp://:国内机器转发端口" -F="relay+ws://国外的ip:443?mbind=true"
+
+docker run -d --name fxxxx --network=host --restart=always ginuerzh/gost "-L=udp://:48001" "-L=tcp://:48001" "-F=relay+mtls://141.164.42.252:12345?mbind=true"
